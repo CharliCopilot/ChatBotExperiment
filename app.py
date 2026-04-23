@@ -169,4 +169,43 @@ user_input = st.text_input("Stil et spørgsmål til agenten:")
 
 col1, col2 = st.columns([1, 4])
 with col1:
-    send_clicked = st.button("Send
+    send_clicked = st.button("Send")
+
+# --- FUNKTION TIL KALD TIL OPENAI ---
+def generate_answer(messages, tone: str) -> str:
+    tone_instruction = ""
+    if tone == "Kort og præcis":
+        tone_instruction = "Svar kort, præcist og fokuseret – maks. 5-7 linjer."
+    elif tone == "Detaljeret og nuanceret":
+        tone_instruction = "Svar detaljeret, nuanceret og med konkrete eksempler, hvor det er relevant."
+    else:
+        tone_instruction = "Svar professionelt, klart og velafbalanceret i længde."
+
+    system_prompt = SYSTEM_PROMPT_BASE.format(context=APPLICATION_CONTEXT) + "\n\n" + tone_instruction
+
+    chat_messages = [{"role": "system", "content": system_prompt}]
+    for m in messages:
+        chat_messages.append({"role": m["role"], "content": m["content"]})
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=chat_messages,
+        temperature=0.4,
+    )
+
+    return response.choices[0].message.content
+
+# --- HÅNDTERING AF NYT INPUT ---
+if send_clicked and user_input.strip():
+    st.session_state.messages.append(
+        {"role": "user", "content": user_input.strip(), "time": datetime.now().strftime("%H:%M")}
+    )
+
+    with st.spinner("Agenten tænker..."):
+        answer = generate_answer(st.session_state.messages, st.session_state.tone)
+
+    st.session_state.messages.append(
+        {"role": "assistant", "content": answer, "time": datetime.now().strftime("%H:%M")}
+    )
+
+    st.experimental_rerun()
