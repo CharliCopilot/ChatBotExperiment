@@ -12,7 +12,7 @@ st.set_page_config(
 # --- OPENAI KLIENT ---
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# --- KONTEKST (indlæst fra ekstern fil for at undgå Unicode-fejl) ---
+# --- KONTEKST (indlæst fra ekstern fil) ---
 def load_context():
     try:
         with open("context.txt", "r", encoding="utf-8") as f:
@@ -22,14 +22,14 @@ def load_context():
 
 APPLICATION_CONTEXT = load_context()
 
-# --- SYSTEMPROMPT ---
+# --- SYSTEMPROMPT (med forbedrede svar) ---
 SYSTEM_PROMPT_BASE = """
 Du er en professionel AI-agent, der repræsenterer kandidaten Charlotte Marie Christensen.
 Du svarer på spørgsmål om hendes erfaring, motivation og tilgang til rollen som seniorkonsulent i HR Development hos Nykredit.
 
 Du skal:
 - svare præcist, professionelt og med høj faglighed
-- fokusere på AI, læring, change management, Prosci ADKAR, adoption, HR-processer og samarbejde
+- fokusere på AI, læring, change management, Prosci ADKAR (uden at være certificeret), adoption, HR-processer og samarbejde
 - bruge udelukkende information fra konteksten
 - svare, som Charlotte selv ville svare
 - være konkret og relevant for Nykredit
@@ -115,10 +115,14 @@ with st.sidebar:
             st.session_state.messages.append(
                 {"role": "user", "content": q, "time": datetime.now().strftime("%H:%M")}
             )
-st.subheader("Ryd samtale")
-if st.button("Clear chat"):
-    st.session_state.messages = []
-    st.rerun()
+
+    # --- CLEAR CHAT KNAP ---
+    st.subheader("Ryd samtale")
+    if st.button("🗑️ Clear chat"):
+        st.session_state.messages = []
+        st.rerun()
+
+    # --- DOWNLOAD SAMTALE ---
     st.subheader("Download samtale")
     if st.session_state.messages:
         transcript = []
@@ -174,7 +178,7 @@ col1, col2 = st.columns([1, 4])
 with col1:
     send_clicked = st.button("Send")
 
-# --- FUNKTION TIL KALD TIL OPENAI ---
+# --- OPENAI FUNKTION ---
 def generate_answer(messages, tone: str) -> str:
     tone_instruction = ""
     if tone == "Kort og præcis":
@@ -212,4 +216,3 @@ if send_clicked and user_input.strip():
     )
 
     st.rerun()
-
