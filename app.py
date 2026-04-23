@@ -22,7 +22,7 @@ def load_context():
 
 APPLICATION_CONTEXT = load_context()
 
-# --- SYSTEMPROMPT (med forbedrede svar) ---
+# --- SYSTEMPROMPT (med forbedret profil) ---
 SYSTEM_PROMPT_BASE = """
 Du er en professionel AI-agent, der repræsenterer kandidaten Charlotte Marie Christensen.
 Du svarer på spørgsmål om hendes erfaring, motivation og tilgang til rollen som seniorkonsulent i HR Development hos Nykredit.
@@ -49,26 +49,64 @@ st.markdown(
     .main {
         background-color: #F5F7FA;
     }
-    .chat-bubble-user {
-        background-color: #005F83;
+    /* Fast top header */
+    .top-header {
+        position: sticky;
+        top: 0;
+        z-index: 999;
+        background-color: #002B45; /* Nykredit mørkeblå */
         color: white;
-        padding: 0.75rem 1rem;
+        padding: 1rem 1.5rem;
+        margin: -1rem -1rem 1rem -1rem;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .top-header-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    .top-header-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.9;
+    }
+    /* Chat bobler */
+    .chat-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    .chat-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    .chat-bubble-user {
+        background-color: #0077A8; /* Nykredit lyseblå */
+        color: white;
+        padding: 0.6rem 0.9rem;
         border-radius: 12px;
-        margin-bottom: 0.5rem;
         max-width: 80%;
+        font-size: 0.95rem;
     }
     .chat-bubble-assistant {
         background-color: white;
         color: #111111;
-        padding: 0.75rem 1rem;
+        padding: 0.6rem 0.9rem;
         border-radius: 12px;
-        margin-bottom: 0.5rem;
-        border: 1px solid #D0D7E2;
         max-width: 80%;
+        font-size: 0.95rem;
+        border: 1px solid #D0D7E2;
     }
     .small-muted {
         font-size: 0.8rem;
         color: #6B7280;
+    }
+    /* Knapper i sidebar */
+    .stButton>button {
+        border-radius: 999px;
     }
     </style>
     """,
@@ -116,13 +154,11 @@ with st.sidebar:
                 {"role": "user", "content": q, "time": datetime.now().strftime("%H:%M")}
             )
 
-    # --- CLEAR CHAT KNAP ---
     st.subheader("Ryd samtale")
     if st.button("🗑️ Clear chat"):
         st.session_state.messages = []
         st.rerun()
 
-    # --- DOWNLOAD SAMTALE ---
     st.subheader("Download samtale")
     if st.session_state.messages:
         transcript = []
@@ -136,14 +172,28 @@ with st.sidebar:
             mime="text/plain",
         )
 
-# --- HOVEDINDHOLD ---
-st.title("🤖 AI‑Ansøger‑Agent for Charlotte Marie Christensen")
+# --- TOP HEADER ---
 st.markdown(
     """
-    Denne agent kan besvare spørgsmål om Charlottes erfaring, motivation og tilgang til rollen som 
-    **seniorkonsulent i HR Development hos Nykredit**.  
-    Stil spørgsmål som ved en samtale – om AI, læring, change, HR‑processer, samarbejde og konkrete resultater.
+    <div class="top-header">
+        <div class="top-header-title">🤖 AI‑Ansøger‑Agent – Charlotte Marie Christensen</div>
+        <div class="top-header-subtitle">
+            Simulerer en samtale med Charlotte om rollen som seniorkonsulent i HR Development hos Nykredit –
+            med fokus på AI, læring, change og HR‑udvikling.
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+# --- HOVEDINDHOLD ---
+st.markdown(
     """
+    <p class="small-muted">
+    Stil spørgsmål som ved en samtale – om erfaring, motivation, AI, læring, change, HR‑processer og samarbejde.
+    </p>
+    """,
+    unsafe_allow_html=True,
 )
 
 st.markdown("---")
@@ -161,22 +211,34 @@ with chat_container:
     for msg in st.session_state.messages:
         if msg["role"] == "user":
             st.markdown(
-                f"<div class='chat-bubble-user'><strong>Du:</strong><br>{msg['content']}</div>",
+                f"""
+                <div class="chat-row">
+                    <div class="chat-avatar">
+                        <img src="avatar_user.png" width="36" height="36">
+                    </div>
+                    <div class="chat-bubble-user">
+                        {msg['content']}
+                    </div>
+                </div>
+                """,
                 unsafe_allow_html=True,
             )
         else:
             st.markdown(
-                f"<div class='chat-bubble-assistant'><strong>Agent:</strong><br>{msg['content']}</div>",
+                f"""
+                <div class="chat-row">
+                    <div class="chat-avatar" style="background-color:#0077A8;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;">
+                        🤖
+                    </div>
+                    <div class="chat-bubble-assistant">
+                        {msg['content']}
+                    </div>
+                </div>
+                """,
                 unsafe_allow_html=True,
             )
 
-# --- INPUTFELT ---
 st.markdown("---")
-user_input = st.text_input("Stil et spørgsmål til agenten:")
-
-col1, col2 = st.columns([1, 4])
-with col1:
-    send_clicked = st.button("Send")
 
 # --- OPENAI FUNKTION ---
 def generate_answer(messages, tone: str) -> str:
@@ -202,8 +264,10 @@ def generate_answer(messages, tone: str) -> str:
 
     return response.choices[0].message.content
 
-# --- HÅNDTERING AF NYT INPUT ---
-if send_clicked and user_input.strip():
+# --- INPUT (ENTER = SEND) ---
+user_input = st.chat_input("Skriv dit spørgsmål her (Enter = send, Shift+Enter = linjeskift)")
+
+if user_input:
     st.session_state.messages.append(
         {"role": "user", "content": user_input.strip(), "time": datetime.now().strftime("%H:%M")}
     )
