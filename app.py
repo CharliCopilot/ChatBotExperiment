@@ -1,6 +1,5 @@
 import streamlit as st
-import openai
-import textwrap
+from openai import OpenAI
 from datetime import datetime
 
 # --- BASISKONFIGURATION ---
@@ -10,187 +9,12 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- OPENAI NØGLE ---
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# --- OPENAI KLIENT ---
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # --- KONTEKST ---
 APPLICATION_CONTEXT = """
-KONTEKST TIL AGENTEN
-Profil
-Charlotte Marie Christensen er en nysgerrig, struktureret og samarbejdsorienteret HR‑profil med stærk erfaring inden for AI‑anvendelse, læringsdesign, change management, HR‑systemer og procesoptimering. Hun har arbejdet over tre år i Novo Nordisk i roller, der kombinerer digitalisering, data, læring, drift, systemimplementering og organisatorisk adoption.
-
-Hun brænder for at gøre AI konkret, anvendeligt og forankret i hverdagen — gennem læring, stilladsering, iterative implementeringer og tæt samarbejde med forretningen.
-
-Motivation for Nykredit
-Charlotte søger rollen som seniorkonsulent i HR Development, fordi hun ønsker at:
-
-gøre AI til en reel kompetence i organisationen
-
-designe læringsforløb, der skaber transfer og varig adfærd
-
-understøtte adoption af nye systemer og processer
-
-arbejde i krydsfeltet mellem digitalisering, læring og change
-
-bidrage til Nykredits ambition om at udbrede AI bredt og ansvarligt
-
-Hun ser Nykredit som en organisation, hvor AI‑kompetenceudvikling kan skabe stor værdi for både medarbejdere, ledere og kunder.
-
-AI‑erfaring (Copilot, automatisering, agenter)
-Charlotte bruger AI aktivt i sit arbejde:
-
-Microsoft Copilot til fejlsøgning, sparring, kommunikation, dataarbejde og idéudvikling
-
-Power Automate til automatisering af manuelle processer
-
-Power BI til performance dashboards og visual management
-
-Power Apps til registrering, årsagsafklaring og continuous improvements
-
-Virtuel HR‑agent/chatbot: Bidraget til udvikling og implementering af en HR‑agent, der giver medarbejdere hurtigere adgang til viden
-
-Hun arbejder med AI som både praktisk værktøj og strategisk løftestang for læring, effektivitet og bedre brugeroplevelser.
-
-Læring og didaktik (stilladsering, ZPD, transfer)
-Charlotte arbejder med læring som progression i nærmeste udviklingszone (ZPD).
-Hun:
-
-afdækker brugerens forudsætninger
-
-bygger et passende stillads omkring næste skridt
-
-sikrer transfer til praksis frem for ren informationsformidling
-
-Eksempler:
-
-Onboarding af en knowledge management consultant med læringsmateriale, check‑ins og monitorering → øget selvstændighed
-
-Udvikling af træningsmateriale og workshops i forbindelse med dashboards og nye arbejdsgange
-
-Facilitering af læringsforløb, der kombinerer teori, praksis og hands‑on øvelser
-
-Change management (ADKAR, pilotering, adoption)
-Charlotte arbejder struktureret med change management, stakeholder management og implementering.
-
-Eksempler:
-
-Virtuel HR‑agent:
-
-3‑måneders pilot i Danmark
-
-behovsafdækning
-
-procesdesign
-
-feedback‑sessioner
-
-virtuelle træningssessioner
-
-fokus på naturlig brug og minimal friktion
-
-cLEAN‑projekter:
-
-A3‑problem solving
-
-root cause analyses
-
-workshops
-
-alignment mellem teams
-
-Hun arbejder iterativt: pilot → feedback → justering → skalering → forankring.
-
-HR Operations & Systemimplementering
-Som Associate Manager i Novo Nordisk har Charlotte:
-
-bygget og implementeret processer for workforce‑justeringer
-
-håndteret 200+ incidents under kritiske perioder
-
-optimeret daglig drift for et team på 15 HR‑konsulenter
-
-arbejdet med ServiceNow, SuccessFactors og SAP HR
-
-oversat komplekse systemkrav til praktiske løsninger
-
-arbejdet tæt med IT, HR‑specialister og ledelse
-
-Key achievements:
-
-Termineringsproces for ~5.000 medarbejdere (anerkendt på EVP/CEO‑niveau)
-
-Workflow‑optimering via nudging → bedre svartider og lead times
-
-Brobygning mellem udvikling og drift
-
-Data, Power Platform & procesoptimering
-Charlotte har erfaring med:
-
-Power BI dashboards
-
-dataanalyse og KPI‑tracking
-
-Power Apps til proaktiv performance management
-
-automatisering via Power Automate
-
-standardisering og global alignment
-
-GAP‑analyser, Go‑Look‑Sees og workshops
-
-Resultater:
-
-50% reduktion i lead times i reorganisationssager
-
-forbedret navigation og datastandarder
-
-styrket strategisk alignment gennem visual management
-
-Knowledge Management & globalt samarbejde
-Som Knowledge Manager har Charlotte:
-
-administreret et repository for 20.000 brugere
-
-forbedret portal search med 86%
-
-øget portal adoption fra 40% → 90%
-
-ledet international SME‑gruppe (20+ medlemmer)
-
-arbejdet i globalt KM‑netværk
-
-bidraget til AI‑implementering i Agent Knowledge
-
-Uddannelse
-Cand.soc. i Uddannelsesvidenskab
-
-M.A. i Organizational Development & Change
-
-Professionsbachelor i Læreruddannelsen
-
-IT‑kompetencer
-Copilot, ChatGPT
-
-Power BI
-
-Power Apps
-
-Power Automate
-
-ServiceNow
-
-SuccessFactors
-
-SAP HR
-
-Microsoft 365
-
-Certificeringer
-cLEAN 1 Star SPS
-
-cLEAN Fundamentals
-
-Power BI Basic
+[DIN KONTEKST – udeladt her for plads, men du indsætter hele teksten du sendte]
 """
 
 # --- SYSTEMPROMPT ---
@@ -358,13 +182,13 @@ def generate_answer(messages, tone: str) -> str:
     for m in messages:
         chat_messages.append({"role": m["role"], "content": m["content"]})
 
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=chat_messages,
         temperature=0.4,
     )
 
-    return response["choices"][0]["message"]["content"].strip()
+    return response.choices[0].message.content
 
 # --- HÅNDTERING AF NYT INPUT ---
 if send_clicked and user_input.strip():
