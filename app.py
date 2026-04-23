@@ -69,42 +69,10 @@ st.markdown(
         font-size: 0.95rem;
         opacity: 0.9;
     }
-    /* Chat bobler */
-    .chat-row {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.5rem;
-        margin-bottom: 0.75rem;
-    }
-    .chat-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        overflow: hidden;
-        flex-shrink: 0;
-    }
-    .chat-bubble-user {
-        background-color: #0077A8; /* Nykredit lyseblå */
-        color: white;
-        padding: 0.6rem 0.9rem;
-        border-radius: 12px;
-        max-width: 80%;
-        font-size: 0.95rem;
-    }
-    .chat-bubble-assistant {
-        background-color: white;
-        color: #111111;
-        padding: 0.6rem 0.9rem;
-        border-radius: 12px;
-        max-width: 80%;
-        font-size: 0.95rem;
-        border: 1px solid #D0D7E2;
-    }
     .small-muted {
         font-size: 0.8rem;
         color: #6B7280;
     }
-    /* Knapper i sidebar */
     .stButton>button {
         border-radius: 999px;
     }
@@ -119,6 +87,9 @@ if "messages" not in st.session_state:
 
 if "tone" not in st.session_state:
     st.session_state.tone = "Professionel"
+
+if "pending_sidebar" not in st.session_state:
+    st.session_state.pending_sidebar = False
 
 # --- SIDEBAR ---
 with st.sidebar:
@@ -153,10 +124,13 @@ with st.sidebar:
             st.session_state.messages.append(
                 {"role": "user", "content": q, "time": datetime.now().strftime("%H:%M")}
             )
+            st.session_state.pending_sidebar = True
+            st.rerun()
 
     st.subheader("Ryd samtale")
     if st.button("🗑️ Clear chat"):
         st.session_state.messages = []
+        st.session_state.pending_sidebar = False
         st.rerun()
 
     st.subheader("Download samtale")
@@ -186,7 +160,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# --- HOVEDINDHOLD ---
+# --- HOVEDINDHOLD INTRO ---
 st.markdown(
     """
     <p class="small-muted">
@@ -195,48 +169,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
-st.markdown("---")
-
-# --- CHATVISNING ---
-chat_container = st.container()
-
-with chat_container:
-    if not st.session_state.messages:
-        st.markdown(
-            "<p class='small-muted'>Start med at stille et spørgsmål i feltet nedenfor – eller brug et af de hurtige spørgsmål i venstre side.</p>",
-            unsafe_allow_html=True,
-        )
-
-    for msg in st.session_state.messages:
-        if msg["role"] == "user":
-            st.markdown(
-                f"""
-                <div class="chat-row">
-                    <div class="chat-avatar">
-                        <img src="avatar_user.png" width="36" height="36">
-                    </div>
-                    <div class="chat-bubble-user">
-                        {msg['content']}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        else:
-            st.markdown(
-                f"""
-                <div class="chat-row">
-                    <div class="chat-avatar" style="background-color:#0077A8;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;">
-                        🤖
-                    </div>
-                    <div class="chat-bubble-assistant">
-                        {msg['content']}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
 
 st.markdown("---")
 
@@ -263,6 +195,34 @@ def generate_answer(messages, tone: str) -> str:
     )
 
     return response.choices[0].message.content
+
+# --- AUTO-SVAR TIL HURTIGE SPØRGSMÅL ---
+if st.session_state.pending_sidebar and st.session_state.messages:
+    with st.spinner("Agenten tænker..."):
+        answer = generate_answer(st.session_state.messages, st.session_state.tone)
+
+    st.session_state.messages.append(
+        {"role": "assistant", "content": answer, "time": datetime.now().strftime("%H:%M")}
+    )
+    st.session_state.pending_sidebar = False
+    st.rerun()
+
+# --- CHATVISNING ---
+if not st.session_state.messages:
+    st.markdown(
+        "<p class='small-muted'>Start med at stille et spørgsmål i feltet nedenfor – eller brug et af de hurtige spørgsmål i venstre side.</p>",
+        unsafe_allow_html=True,
+    )
+
+for msg in st.session_state.messages:
+    if msg["role"] == "user":
+        with st.chat_message("user", avatar="avatar_user.png"):
+            st.markdown(msg["content"])
+    else:
+        with st.chat_message("assistant", avatar="🤖"):
+            st.markdown(msg["content"])
+
+st.markdown("---")
 
 # --- INPUT (ENTER = SEND) ---
 user_input = st.chat_input("Skriv dit spørgsmål her (Enter = send, Shift+Enter = linjeskift)")
