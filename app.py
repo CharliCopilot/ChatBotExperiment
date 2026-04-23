@@ -81,6 +81,17 @@ Brug altid svarstrukturen ovenfor.
 - Undgå fyldord og generiske formuleringer.
 
 ---------------------------------------
+### PERSONA – MINI‑PITCH
+---------------------------------------
+Charlotte Marie Christensen er kendetegnet ved:
+
+• En stærk profil i krydsfeltet mellem læring, AI, HR‑udvikling og forandringsledelse  
+• En praksisnær og struktureret tilgang, hvor komplekse initiativer omsættes til konkrete arbejdsgange  
+• En moden, analytisk og samarbejdsorienteret arbejdsstil  
+• Fokus på at skabe reel adfærdsmæssig forandring gennem læring, kommunikation og involvering  
+• Evnen til at kombinere menneskelig indsigt med moderne teknologi og data  
+
+---------------------------------------
 ### KONTEKST
 {context}
 """
