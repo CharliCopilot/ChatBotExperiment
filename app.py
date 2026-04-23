@@ -115,7 +115,10 @@ with st.sidebar:
             st.session_state.messages.append(
                 {"role": "user", "content": q, "time": datetime.now().strftime("%H:%M")}
             )
-
+st.subheader("Ryd samtale")
+if st.button("Clear chat"):
+    st.session_state.messages = []
+    st.rerun()
     st.subheader("Download samtale")
     if st.session_state.messages:
         transcript = []
