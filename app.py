@@ -22,7 +22,7 @@ def load_context():
 
 APPLICATION_CONTEXT = load_context()
 
-# --- SYSTEMPROMPT (med forbedret profil) ---
+# --- SYSTEMPROMPT ---
 SYSTEM_PROMPT_BASE = """
 Du er en professionel AI-agent, der repræsenterer kandidaten Charlotte Marie Christensen.
 Du svarer på spørgsmål om hendes erfaring, motivation og tilgang til rollen som seniorkonsulent i HR Development hos Nykredit.
@@ -46,15 +46,14 @@ Kontekst:
 st.markdown(
     """
     <style>
-    .main {
-        background-color: #F5F7FA;
-    }
+    .main { background-color: #F5F7FA; }
+
     /* Fast top header */
     .top-header {
         position: sticky;
         top: 0;
         z-index: 999;
-        background-color: #002B45; /* Nykredit mørkeblå */
+        background-color: #002B45;
         color: white;
         padding: 1rem 1.5rem;
         margin: -1rem -1rem 1rem -1rem;
@@ -95,8 +94,8 @@ if "pending_sidebar" not in st.session_state:
 with st.sidebar:
     st.header("Om agenten")
     st.write(
-        "Denne AI‑agent er trænet på Charlotte Marie Christensens erfaring, "
-        "motivation og faglige profil ift. rollen som seniorkonsulent i HR Development hos Nykredit."
+        "Denne AI‑agent simulerer Charlottes svar i en samtale om rollen som "
+        "seniorkonsulent i HR Development hos Nykredit."
     )
 
     st.subheader("Tone i svar")
@@ -121,9 +120,7 @@ with st.sidebar:
 
     for q in quick_questions:
         if st.button(q):
-            st.session_state.messages.append(
-                {"role": "user", "content": q, "time": datetime.now().strftime("%H:%M")}
-            )
+            st.session_state.messages.append({"role": "user", "content": q})
             st.session_state.pending_sidebar = True
             st.rerun()
 
@@ -137,7 +134,7 @@ with st.sidebar:
     if st.session_state.messages:
         transcript = []
         for m in st.session_state.messages:
-            prefix = "Bruger" if m["role"] == "user" else "Agent"
+            prefix = "Bruger" if m["role"] == "user" else "Charlotte"
             transcript.append(f"{prefix}: {m['content']}")
         st.download_button(
             label="Download som tekstfil",
@@ -152,35 +149,20 @@ st.markdown(
     <div class="top-header">
         <div class="top-header-title">🤖 AI‑Ansøger‑Agent – Charlotte Marie Christensen</div>
         <div class="top-header-subtitle">
-            Simulerer en samtale med Charlotte om rollen som seniorkonsulent i HR Development hos Nykredit –
-            med fokus på AI, læring, change og HR‑udvikling.
+            Simulerer Charlottes svar i en samtale om rollen som seniorkonsulent i HR Development hos Nykredit.
         </div>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
-# --- HOVEDINDHOLD INTRO ---
-st.markdown(
-    """
-    <p class="small-muted">
-    Stil spørgsmål som ved en samtale – om erfaring, motivation, AI, læring, change, HR‑processer og samarbejde.
-    </p>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.markdown("---")
-
 # --- OPENAI FUNKTION ---
 def generate_answer(messages, tone: str) -> str:
-    tone_instruction = ""
-    if tone == "Kort og præcis":
-        tone_instruction = "Svar kort, præcist og fokuseret – maks. 5-7 linjer."
-    elif tone == "Detaljeret og nuanceret":
-        tone_instruction = "Svar detaljeret, nuanceret og med konkrete eksempler, hvor det er relevant."
-    else:
-        tone_instruction = "Svar professionelt, klart og velafbalanceret i længde."
+    tone_instruction = {
+        "Kort og præcis": "Svar kort, præcist og fokuseret – maks. 5-7 linjer.",
+        "Detaljeret og nuanceret": "Svar detaljeret, nuanceret og med konkrete eksempler.",
+        "Professionel": "Svar professionelt, klart og velafbalanceret."
+    }[tone]
 
     system_prompt = SYSTEM_PROMPT_BASE.format(context=APPLICATION_CONTEXT) + "\n\n" + tone_instruction
 
@@ -198,45 +180,30 @@ def generate_answer(messages, tone: str) -> str:
 
 # --- AUTO-SVAR TIL HURTIGE SPØRGSMÅL ---
 if st.session_state.pending_sidebar and st.session_state.messages:
-    with st.spinner("Agenten tænker..."):
+    with st.spinner("Charlottes AI ansøgnings‑agent tænker..."):
         answer = generate_answer(st.session_state.messages, st.session_state.tone)
 
-    st.session_state.messages.append(
-        {"role": "assistant", "content": answer, "time": datetime.now().strftime("%H:%M")}
-    )
+    st.session_state.messages.append({"role": "assistant", "content": answer})
     st.session_state.pending_sidebar = False
     st.rerun()
 
 # --- CHATVISNING ---
-if not st.session_state.messages:
-    st.markdown(
-        "<p class='small-muted'>Start med at stille et spørgsmål i feltet nedenfor – eller brug et af de hurtige spørgsmål i venstre side.</p>",
-        unsafe_allow_html=True,
-    )
-
 for msg in st.session_state.messages:
     if msg["role"] == "user":
-        with st.chat_message("user", avatar="avatar_user.png"):
+        with st.chat_message("user", avatar="👤"):
             st.markdown(msg["content"])
     else:
-        with st.chat_message("assistant", avatar="🤖"):
+        with st.chat_message("assistant", avatar="avatar_user.png"):
             st.markdown(msg["content"])
 
-st.markdown("---")
-
 # --- INPUT (ENTER = SEND) ---
-user_input = st.chat_input("Skriv dit spørgsmål her (Enter = send, Shift+Enter = linjeskift)")
+user_input = st.chat_input("Skriv dit spørgsmål her (Enter = send)")
 
 if user_input:
-    st.session_state.messages.append(
-        {"role": "user", "content": user_input.strip(), "time": datetime.now().strftime("%H:%M")}
-    )
+    st.session_state.messages.append({"role": "user", "content": user_input})
 
-    with st.spinner("Agenten tænker..."):
+    with st.spinner("Charlottes AI ansøgnings‑agent tænker..."):
         answer = generate_answer(st.session_state.messages, st.session_state.tone)
 
-    st.session_state.messages.append(
-        {"role": "assistant", "content": answer, "time": datetime.now().strftime("%H:%M")}
-    )
-
+    st.session_state.messages.append({"role": "assistant", "content": answer})
     st.rerun()
