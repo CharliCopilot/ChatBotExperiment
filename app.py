@@ -1,22 +1,200 @@
 import streamlit as st
 import openai
+import textwrap
+from datetime import datetime
 
-st.set_page_config(page_title="Charlotte Christensen – AI Ansøger Agent", page_icon="🤖", layout="wide")
+# --- BASISKONFIGURATION ---
+st.set_page_config(
+    page_title="AI-Ansøger-Agent – Charlotte Marie Christensen",
+    page_icon="🤖",
+    layout="wide"
+)
 
-# --- TITLE ---
-st.title("🤖 AI-Ansøger-Agent for Charlotte Marie Christensen")
-st.write("Denne agent kan svare på spørgsmål om min erfaring, motivation og tilgang til rollen som Seniorkonsulent i HR Development hos Nykredit.")
-
-# --- API KEY ---
+# --- OPENAI NØGLE ---
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# --- KONTEKST (indsat fra vores samlede tekst) ---
+# --- KONTEKST ---
 APPLICATION_CONTEXT = """
-[HER INDSÆTTES DEN STORE KONTEKSTTEKST JEG HAR GENERERET TIL DIG]
+KONTEKST TIL AGENTEN
+Profil
+Charlotte Marie Christensen er en nysgerrig, struktureret og samarbejdsorienteret HR‑profil med stærk erfaring inden for AI‑anvendelse, læringsdesign, change management, HR‑systemer og procesoptimering. Hun har arbejdet over tre år i Novo Nordisk i roller, der kombinerer digitalisering, data, læring, drift, systemimplementering og organisatorisk adoption.
+
+Hun brænder for at gøre AI konkret, anvendeligt og forankret i hverdagen — gennem læring, stilladsering, iterative implementeringer og tæt samarbejde med forretningen.
+
+Motivation for Nykredit
+Charlotte søger rollen som seniorkonsulent i HR Development, fordi hun ønsker at:
+
+gøre AI til en reel kompetence i organisationen
+
+designe læringsforløb, der skaber transfer og varig adfærd
+
+understøtte adoption af nye systemer og processer
+
+arbejde i krydsfeltet mellem digitalisering, læring og change
+
+bidrage til Nykredits ambition om at udbrede AI bredt og ansvarligt
+
+Hun ser Nykredit som en organisation, hvor AI‑kompetenceudvikling kan skabe stor værdi for både medarbejdere, ledere og kunder.
+
+AI‑erfaring (Copilot, automatisering, agenter)
+Charlotte bruger AI aktivt i sit arbejde:
+
+Microsoft Copilot til fejlsøgning, sparring, kommunikation, dataarbejde og idéudvikling
+
+Power Automate til automatisering af manuelle processer
+
+Power BI til performance dashboards og visual management
+
+Power Apps til registrering, årsagsafklaring og continuous improvements
+
+Virtuel HR‑agent/chatbot: Bidraget til udvikling og implementering af en HR‑agent, der giver medarbejdere hurtigere adgang til viden
+
+Hun arbejder med AI som både praktisk værktøj og strategisk løftestang for læring, effektivitet og bedre brugeroplevelser.
+
+Læring og didaktik (stilladsering, ZPD, transfer)
+Charlotte arbejder med læring som progression i nærmeste udviklingszone (ZPD).
+Hun:
+
+afdækker brugerens forudsætninger
+
+bygger et passende stillads omkring næste skridt
+
+sikrer transfer til praksis frem for ren informationsformidling
+
+Eksempler:
+
+Onboarding af en knowledge management consultant med læringsmateriale, check‑ins og monitorering → øget selvstændighed
+
+Udvikling af træningsmateriale og workshops i forbindelse med dashboards og nye arbejdsgange
+
+Facilitering af læringsforløb, der kombinerer teori, praksis og hands‑on øvelser
+
+Change management (ADKAR, pilotering, adoption)
+Charlotte arbejder struktureret med change management, stakeholder management og implementering.
+
+Eksempler:
+
+Virtuel HR‑agent:
+
+3‑måneders pilot i Danmark
+
+behovsafdækning
+
+procesdesign
+
+feedback‑sessioner
+
+virtuelle træningssessioner
+
+fokus på naturlig brug og minimal friktion
+
+cLEAN‑projekter:
+
+A3‑problem solving
+
+root cause analyses
+
+workshops
+
+alignment mellem teams
+
+Hun arbejder iterativt: pilot → feedback → justering → skalering → forankring.
+
+HR Operations & Systemimplementering
+Som Associate Manager i Novo Nordisk har Charlotte:
+
+bygget og implementeret processer for workforce‑justeringer
+
+håndteret 200+ incidents under kritiske perioder
+
+optimeret daglig drift for et team på 15 HR‑konsulenter
+
+arbejdet med ServiceNow, SuccessFactors og SAP HR
+
+oversat komplekse systemkrav til praktiske løsninger
+
+arbejdet tæt med IT, HR‑specialister og ledelse
+
+Key achievements:
+
+Termineringsproces for ~5.000 medarbejdere (anerkendt på EVP/CEO‑niveau)
+
+Workflow‑optimering via nudging → bedre svartider og lead times
+
+Brobygning mellem udvikling og drift
+
+Data, Power Platform & procesoptimering
+Charlotte har erfaring med:
+
+Power BI dashboards
+
+dataanalyse og KPI‑tracking
+
+Power Apps til proaktiv performance management
+
+automatisering via Power Automate
+
+standardisering og global alignment
+
+GAP‑analyser, Go‑Look‑Sees og workshops
+
+Resultater:
+
+50% reduktion i lead times i reorganisationssager
+
+forbedret navigation og datastandarder
+
+styrket strategisk alignment gennem visual management
+
+Knowledge Management & globalt samarbejde
+Som Knowledge Manager har Charlotte:
+
+administreret et repository for 20.000 brugere
+
+forbedret portal search med 86%
+
+øget portal adoption fra 40% → 90%
+
+ledet international SME‑gruppe (20+ medlemmer)
+
+arbejdet i globalt KM‑netværk
+
+bidraget til AI‑implementering i Agent Knowledge
+
+Uddannelse
+Cand.soc. i Uddannelsesvidenskab
+
+M.A. i Organizational Development & Change
+
+Professionsbachelor i Læreruddannelsen
+
+IT‑kompetencer
+Copilot, ChatGPT
+
+Power BI
+
+Power Apps
+
+Power Automate
+
+ServiceNow
+
+SuccessFactors
+
+SAP HR
+
+Microsoft 365
+
+Certificeringer
+cLEAN 1 Star SPS
+
+cLEAN Fundamentals
+
+Power BI Basic
 """
 
-# --- SYSTEM PROMPT ---
-SYSTEM_PROMPT = f"""
+# --- SYSTEMPROMPT ---
+SYSTEM_PROMPT_BASE = """
 Du er en professionel AI-agent, der repræsenterer kandidaten Charlotte Marie Christensen.
 Du svarer på spørgsmål om hendes erfaring, motivation og tilgang til rollen som seniorkonsulent i HR Development hos Nykredit.
 
@@ -32,41 +210,173 @@ Hvis et spørgsmål ligger uden for konteksten, skal du sige:
 “Det fremgår ikke af min erfaring, men jeg kan fortælle…” og derefter svare generelt.
 
 Kontekst:
-{APPLICATION_CONTEXT}
+{context}
 """
 
-# --- SIDEBAR MED HURTIGE SPØRGSMÅL ---
-st.sidebar.header("Hurtige spørgsmål")
-quick_questions = [
-    "Hvad er din erfaring med AI og Copilot?",
-    "Hvordan arbejder du med Prosci ADKAR?",
-    "Hvorfor søger du stillingen hos Nykredit?",
-    "Hvordan vil du designe et AI-læringsforløb?",
-    "Hvordan arbejder du med change management?",
-    "Hvad er dine styrker i rollen?",
-    "Hvordan har du arbejdet med HR-systemer som ServiceNow og SuccessFactors?",
-    "Hvordan sikrer du adoption af nye processer?"
-]
+# --- CSS / BRANDING ---
+st.markdown(
+    """
+    <style>
+    .main {
+        background-color: #F5F7FA;
+    }
+    .chat-bubble-user {
+        background-color: #005F83;
+        color: white;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 0.5rem;
+        max-width: 80%;
+    }
+    .chat-bubble-assistant {
+        background-color: white;
+        color: #111111;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 0.5rem;
+        border: 1px solid #D0D7E2;
+        max-width: 80%;
+    }
+    .small-muted {
+        font-size: 0.8rem;
+        color: #6B7280;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-for q in quick_questions:
-    if st.sidebar.button(q):
-        st.session_state["last_question"] = q
+# --- SESSION STATE ---
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# --- INPUTFELT ---
-user_input = st.text_input("Stil et spørgsmål til agenten:")
+if "tone" not in st.session_state:
+    st.session_state.tone = "Professionel"
 
-if "last_question" in st.session_state and not user_input:
-    user_input = st.session_state["last_question"]
-
-# --- GENERER SVAR ---
-if user_input:
-    response = openai.ChatCompletion.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_input}
-        ]
+# --- SIDEBAR ---
+with st.sidebar:
+    st.header("Om agenten")
+    st.write(
+        "Denne AI‑agent er trænet på Charlotte Marie Christensens erfaring, "
+        "motivation og faglige profil ift. rollen som seniorkonsulent i HR Development hos Nykredit."
     )
 
-    st.write("### Agentens svar:")
-    st.write(response["choices"][0]["message"]["content"])
+    st.subheader("Tone i svar")
+    tone = st.radio(
+        "Vælg svarstil:",
+        ["Professionel", "Kort og præcis", "Detaljeret og nuanceret"],
+        index=["Professionel", "Kort og præcis", "Detaljeret og nuanceret"].index(st.session_state.tone),
+    )
+    st.session_state.tone = tone
+
+    st.subheader("Hurtige spørgsmål")
+    quick_questions = [
+        "Hvorfor søger du stillingen som seniorkonsulent i HR Development hos Nykredit?",
+        "Hvordan arbejder du med AI og Copilot i praksis?",
+        "Hvordan bruger du Prosci ADKAR i change management?",
+        "Hvordan vil du designe et AI-læringsforløb for Nykredit?",
+        "Hvordan sikrer du adoption af nye systemer og processer?",
+        "Hvad er dine vigtigste styrker i rollen?",
+        "Hvordan har du arbejdet med ServiceNow, SuccessFactors og SAP HR?",
+        "Hvordan arbejder du med data, Power BI og procesoptimering?"
+    ]
+
+    for q in quick_questions:
+        if st.button(q):
+            st.session_state.messages.append(
+                {"role": "user", "content": q, "time": datetime.now().strftime("%H:%M")}
+            )
+
+    st.subheader("Download samtale")
+    if st.session_state.messages:
+        transcript = []
+        for m in st.session_state.messages:
+            prefix = "Bruger" if m["role"] == "user" else "Agent"
+            transcript.append(f"{prefix}: {m['content']}")
+        st.download_button(
+            label="Download som tekstfil",
+            data="\n\n".join(transcript),
+            file_name="charlotte_ai_ansoger_agent_samtale.txt",
+            mime="text/plain",
+        )
+
+# --- HOVEDINDHOLD ---
+st.title("🤖 AI‑Ansøger‑Agent for Charlotte Marie Christensen")
+st.markdown(
+    """
+    Denne agent kan besvare spørgsmål om Charlottes erfaring, motivation og tilgang til rollen som 
+    **seniorkonsulent i HR Development hos Nykredit**.  
+    Stil spørgsmål som ved en samtale – om AI, læring, change, HR‑processer, samarbejde og konkrete resultater.
+    """
+)
+
+st.markdown("---")
+
+# --- CHATVISNING ---
+chat_container = st.container()
+
+with chat_container:
+    if not st.session_state.messages:
+        st.markdown(
+            "<p class='small-muted'>Start med at stille et spørgsmål i feltet nedenfor – eller brug et af de hurtige spørgsmål i venstre side.</p>",
+            unsafe_allow_html=True,
+        )
+
+    for msg in st.session_state.messages:
+        if msg["role"] == "user":
+            st.markdown(
+                f"<div class='chat-bubble-user'><strong>Du:</strong><br>{msg['content']}</div>",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                f"<div class='chat-bubble-assistant'><strong>Agent:</strong><br>{msg['content']}</div>",
+                unsafe_allow_html=True,
+            )
+
+# --- INPUTFELT ---
+st.markdown("---")
+user_input = st.text_input("Stil et spørgsmål til agenten:")
+
+col1, col2 = st.columns([1, 4])
+with col1:
+    send_clicked = st.button("Send")
+
+# --- FUNKTION TIL KALD TIL OPENAI ---
+def generate_answer(messages, tone: str) -> str:
+    tone_instruction = ""
+    if tone == "Kort og præcis":
+        tone_instruction = "Svar kort, præcist og fokuseret – maks. 5-7 linjer."
+    elif tone == "Detaljeret og nuanceret":
+        tone_instruction = "Svar detaljeret, nuanceret og med konkrete eksempler, hvor det er relevant."
+    else:
+        tone_instruction = "Svar professionelt, klart og velafbalanceret i længde."
+
+    system_prompt = SYSTEM_PROMPT_BASE.format(context=APPLICATION_CONTEXT) + "\n\n" + tone_instruction
+
+    chat_messages = [{"role": "system", "content": system_prompt}]
+    for m in messages:
+        chat_messages.append({"role": m["role"], "content": m["content"]})
+
+    response = openai.ChatCompletion.create(
+        model="gpt-4o-mini",
+        messages=chat_messages,
+        temperature=0.4,
+    )
+
+    return response["choices"][0]["message"]["content"].strip()
+
+# --- HÅNDTERING AF NYT INPUT ---
+if send_clicked and user_input.strip():
+    st.session_state.messages.append(
+        {"role": "user", "content": user_input.strip(), "time": datetime.now().strftime("%H:%M")}
+    )
+
+    with st.spinner("Agenten tænker..."):
+        answer = generate_answer(st.session_state.messages, st.session_state.tone)
+
+    st.session_state.messages.append(
+        {"role": "assistant", "content": answer, "time": datetime.now().strftime("%H:%M")}
+    )
+
+    st.experimental_rerun()
