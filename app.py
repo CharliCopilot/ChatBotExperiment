@@ -208,4 +208,5 @@ if send_clicked and user_input.strip():
         {"role": "assistant", "content": answer, "time": datetime.now().strftime("%H:%M")}
     )
 
-    st.experimental_rerun()
+    st.rerun()
+
